@@ -1,13 +1,15 @@
 diff --git a/app.js b/app.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0e234878a
+index 0000000000000000000000000000000000000000..0e40bb5b42e42be2f36ab197b28c97d83012fc20
 --- /dev/null
 +++ b/app.js
-@@ -0,0 +1,343 @@
+@@ -0,0 +1,406 @@
 +const providerSelect = document.getElementById('providerSelect');
-+const accountInput = document.getElementById('accountInput');
++const driveUrlInput = document.getElementById('driveUrlInput');
++const usernameInput = document.getElementById('usernameInput');
 +const passwordInput = document.getElementById('passwordInput');
 +const connectForm = document.getElementById('connectForm');
++const connectFeedback = document.getElementById('connectFeedback');
 +const statusText = document.getElementById('statusText');
 +
 +const directoryTree = document.getElementById('directoryTree');
@@ -30,6 +32,7 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +
 +const state = {
 +  connectedDrive: null,
++  treeData: null,
 +  queue: [],
 +  playlists: JSON.parse(localStorage.getItem('minamp-playlists') || '[]'),
 +  activeDirectoryPath: null,
@@ -73,22 +76,37 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +        },
 +      ],
 +    },
-+    {
-+      name: 'Playlists',
-+      type: 'directory',
-+      children: [
-+        {
-+          name: 'Morning Focus.m3u',
-+          type: 'audio',
-+          url: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg',
-+        },
-+      ],
-+    },
 +  ],
 +};
 +
++function setFeedback(message, isSuccess = false) {
++  connectFeedback.textContent = message;
++  connectFeedback.classList.toggle('success', isSuccess);
++}
++
++function isValidNode(node) {
++  if (!node || typeof node !== 'object') {
++    return false;
++  }
++
++  if (node.type === 'directory') {
++    return Array.isArray(node.children);
++  }
++
++  if (node.type === 'audio' || node.type === 'video') {
++    return typeof node.url === 'string';
++  }
++
++  return false;
++}
++
 +function renderTree(node, parentPath = '') {
 +  const wrap = document.createElement('ul');
++
++  if (!node.children || node.children.length === 0) {
++    wrap.innerHTML = '<li class="empty">No folders/files found</li>';
++    return wrap;
++  }
 +
 +  node.children.forEach((child) => {
 +    const item = document.createElement('li');
@@ -100,19 +118,22 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +      folderTitle.style.cursor = 'pointer';
 +      folderTitle.addEventListener('click', () => {
 +        state.activeDirectoryPath = path;
-+        folderTitle.classList.toggle('selected');
 +      });
 +      item.append(folderTitle);
 +
 +      const addDirectoryBtn = document.createElement('button');
-+      addDirectoryBtn.textContent = 'Add folder media';
++      addDirectoryBtn.textContent = 'Queue folder';
 +      addDirectoryBtn.addEventListener('click', () => {
 +        const mediaItems = flattenDirectoryMedia(child, path);
++        if (mediaItems.length === 0) {
++          window.alert('No media files in this folder.');
++          return;
++        }
++
 +        state.queue.push(...mediaItems);
 +        renderQueue();
 +      });
 +      item.append(addDirectoryBtn);
-+
 +      item.append(renderTree(child, path));
 +    }
 +
@@ -218,12 +239,14 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +  if (state.queue.length === 0) {
 +    return;
 +  }
++
 +  const nextIndex = (state.currentIndex + 1) % state.queue.length;
 +  playIndex(nextIndex);
 +}
 +
 +function renderPlaylists() {
 +  playlistList.innerHTML = '';
++
 +  if (state.playlists.length === 0) {
 +    playlistList.innerHTML = '<li class="empty">No saved playlists</li>';
 +    return;
@@ -236,6 +259,7 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +    loadButton.textContent = 'Load';
 +    loadButton.addEventListener('click', () => {
 +      state.queue = [...playlist.items];
++      state.currentIndex = -1;
 +      renderQueue();
 +    });
 +    li.append(loadButton);
@@ -243,27 +267,60 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +  });
 +}
 +
-+connectForm.addEventListener('submit', (event) => {
++async function loadTreeFromUrl(driveUrl) {
++  const response = await fetch(driveUrl);
++  if (!response.ok) {
++    throw new Error(`Request failed (${response.status})`);
++  }
++
++  const payload = await response.json();
++  if (!isValidNode(payload)) {
++    throw new Error('URL JSON is not a valid drive tree object');
++  }
++
++  return payload;
++}
++
++connectForm.addEventListener('submit', async (event) => {
 +  event.preventDefault();
 +
 +  const provider = providerSelect.value;
-+  const account = accountInput.value.trim();
-+  const isProtected = passwordInput.value.trim().length > 0;
++  const driveUrl = driveUrlInput.value.trim();
++  const username = usernameInput.value.trim();
++  const password = passwordInput.value.trim();
 +
-+  if (!provider || !account) {
++  if (!provider || !driveUrl || !username) {
++    setFeedback('Please fill provider, drive URL, and username.');
 +    return;
++  }
++
++  statusText.textContent = 'Connecting...';
++  setFeedback('Connecting to drive URL...');
++
++  let treeData = sampleDriveData;
++
++  try {
++    treeData = await loadTreeFromUrl(driveUrl);
++    setFeedback('Connected successfully using drive URL manifest.', true);
++  } catch (error) {
++    setFeedback(
++      `Could not read URL manifest (${error.message}). Loaded demo media tree so the app remains usable.`,
++    );
 +  }
 +
 +  state.connectedDrive = {
 +    provider,
-+    account,
-+    protected: isProtected,
++    driveUrl,
++    username,
++    hasPassword: password.length > 0,
 +  };
++  state.treeData = treeData;
++  state.activeDirectoryPath = null;
 +
-+  statusText.textContent = `Connected: ${provider.toUpperCase()} (${isProtected ? 'password-protected' : 'standard access'})`;
++  statusText.textContent = `Connected: ${provider.toUpperCase()} | ${username}`;
 +
 +  directoryTree.innerHTML = '';
-+  directoryTree.append(renderTree(sampleDriveData));
++  directoryTree.append(renderTree(state.treeData));
 +});
 +
 +newPlaylistBtn.addEventListener('click', () => {
@@ -273,6 +330,7 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +  }
 +
 +  state.playlists.push({ name, items: [] });
++  localStorage.setItem('minamp-playlists', JSON.stringify(state.playlists));
 +  renderPlaylists();
 +});
 +
@@ -293,13 +351,18 @@ index 0000000000000000000000000000000000000000..5e93ad933978b3a2c17e1f10d4b128b0
 +});
 +
 +makeDirectoryPlaylistBtn.addEventListener('click', () => {
++  if (!state.treeData) {
++    window.alert('Connect to a drive first.');
++    return;
++  }
++
 +  if (!state.activeDirectoryPath) {
 +    window.alert('Select a directory first in the explorer tree.');
 +    return;
 +  }
 +
 +  const folderName = state.activeDirectoryPath.split('/').filter(Boolean).pop();
-+  const foundDirectory = findDirectory(sampleDriveData, folderName);
++  const foundDirectory = findDirectory(state.treeData, folderName);
 +  if (!foundDirectory) {
 +    window.alert('Directory not found in current cloud tree.');
 +    return;
