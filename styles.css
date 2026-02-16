@@ -1,0 +1,215 @@
+diff --git a/styles.css b/styles.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..aa16e147241836d96af2499102e2d41d94442c95
+--- /dev/null
++++ b/styles.css
+@@ -0,0 +1,209 @@
++:root {
++  color-scheme: dark;
++  --bg: #101418;
++  --panel: #1a232c;
++  --panel-alt: #22303c;
++  --line: #355066;
++  --accent: #2dd4bf;
++  --text: #dbeafe;
++  --muted: #93a4b8;
++}
++
++* {
++  box-sizing: border-box;
++}
++
++body {
++  margin: 0;
++  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
++  background: radial-gradient(circle at top, #203144 0%, var(--bg) 50%);
++  color: var(--text);
++  min-height: 100vh;
++}
++
++.app-shell {
++  display: grid;
++  grid-template-columns: 300px 1fr;
++  grid-template-rows: auto 1fr auto;
++  gap: 12px;
++  padding: 12px;
++  min-height: 100vh;
++}
++
++.title-bar {
++  grid-column: 1 / -1;
++  background: linear-gradient(90deg, #0f172a, #1d4f70);
++  border: 1px solid #5e91bd;
++  border-radius: 8px;
++  padding: 10px 14px;
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++}
++
++h1,
++h2 {
++  margin: 0;
++}
++
++h1 {
++  font-size: 1.15rem;
++  text-transform: uppercase;
++  letter-spacing: 0.08em;
++}
++
++h2 {
++  font-size: 0.92rem;
++  margin-bottom: 10px;
++}
++
++.panel {
++  background: var(--panel);
++  border: 1px solid var(--line);
++  border-radius: 8px;
++  box-shadow: inset 0 0 0 1px #2b4052;
++}
++
++.sidebar {
++  padding: 12px;
++  overflow: auto;
++}
++
++.connect-form {
++  display: grid;
++  gap: 8px;
++  margin-bottom: 16px;
++}
++
++.connect-form label {
++  display: grid;
++  gap: 4px;
++  font-size: 0.85rem;
++  color: var(--muted);
++}
++
++input,
++select,
++button {
++  border-radius: 4px;
++  border: 1px solid #42627d;
++  background: #0e1722;
++  color: var(--text);
++  padding: 6px 8px;
++  font-size: 0.9rem;
++}
++
++button {
++  background: linear-gradient(180deg, #2f4f67, #1a2f41);
++  cursor: pointer;
++}
++
++button:hover {
++  border-color: var(--accent);
++}
++
++.playlist-actions {
++  display: grid;
++  grid-template-columns: 1fr;
++  gap: 6px;
++  margin-bottom: 10px;
++}
++
++.main {
++  display: grid;
++  grid-template-columns: 1fr 1fr;
++  gap: 12px;
++  padding: 12px;
++}
++
++.section-head {
++  display: flex;
++  justify-content: space-between;
++  align-items: baseline;
++  margin-bottom: 8px;
++  gap: 8px;
++}
++
++.section-head small {
++  color: var(--muted);
++  text-align: right;
++}
++
++.tree,
++.list {
++  background: var(--panel-alt);
++  border: 1px solid #2d4254;
++  border-radius: 6px;
++  padding: 8px;
++  margin: 0;
++  list-style: none;
++  min-height: 220px;
++  max-height: 380px;
++  overflow: auto;
++}
++
++.tree ul {
++  list-style: none;
++  padding-left: 14px;
++}
++
++.tree button {
++  margin-left: 8px;
++  padding: 3px 6px;
++  font-size: 0.75rem;
++}
++
++.list li {
++  padding: 6px;
++  border-bottom: 1px dashed #42627d;
++  display: flex;
++  justify-content: space-between;
++  gap: 8px;
++  align-items: center;
++}
++
++.list li:last-child {
++  border-bottom: 0;
++}
++
++.player {
++  grid-column: 1 / -1;
++  display: grid;
++  grid-template-columns: 1fr auto;
++  gap: 12px;
++  padding: 10px;
++}
++
++.player-controls {
++  display: flex;
++  gap: 8px;
++  align-items: center;
++}
++
++#audioPlayer,
++#videoPlayer {
++  grid-column: 1 / -1;
++  width: 100%;
++}
++
++.status {
++  font-size: 0.85rem;
++  color: #bbf7d0;
++}
++
++.empty {
++  color: var(--muted);
++  font-style: italic;
++  padding: 8px;
++}
++
++@media (max-width: 980px) {
++  .app-shell {
++    grid-template-columns: 1fr;
++    grid-template-rows: auto auto 1fr auto;
++  }
++
++  .main {
++    grid-template-columns: 1fr;
++  }
++}
