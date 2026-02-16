@@ -1,9 +1,9 @@
 diff --git a/index.html b/index.html
 new file mode 100644
-index 0000000000000000000000000000000000000000..b2923514772322bbca72c382373aa0c3da830054
+index 0000000000000000000000000000000000000000..ac509625164c3ed3a5638fb5a2426e3e8e51504d
 --- /dev/null
 +++ b/index.html
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,95 @@
 +<!doctype html>
 +<html lang="en">
 +  <head>
@@ -14,13 +14,20 @@ index 0000000000000000000000000000000000000000..b2923514772322bbca72c382373aa0c3
 +  </head>
 +  <body>
 +    <div class="app-shell">
-+      <header class="title-bar">
-+        <h1>MinAmp Cloud Player</h1>
-+        <span class="status" id="statusText">No cloud connected</span>
++      <header class="winamp-header panel">
++        <div class="header-left">
++          <span class="brand">MINAMP</span>
++          <span class="subtitle">Cloud Media Player</span>
++        </div>
++        <div class="window-actions">
++          <button type="button" aria-label="Minimize">_</button>
++          <button type="button" aria-label="Maximize">▢</button>
++          <button type="button" aria-label="Close">✕</button>
++        </div>
 +      </header>
 +
 +      <aside class="sidebar panel">
-+        <h2>Cloud Connections</h2>
++        <h2>Cloud Connection</h2>
 +        <form id="connectForm" class="connect-form">
 +          <label>
 +            Provider
@@ -32,21 +39,26 @@ index 0000000000000000000000000000000000000000..b2923514772322bbca72c382373aa0c3
 +            </select>
 +          </label>
 +          <label>
-+            Account / Link
-+            <input id="accountInput" type="text" placeholder="email or share link" required />
++            Drive URL / Share URL
++            <input id="driveUrlInput" type="url" placeholder="https://..." required />
++          </label>
++          <label>
++            Username / Email
++            <input id="usernameInput" type="text" placeholder="you@example.com" required />
 +          </label>
 +          <label>
 +            Password (optional)
 +            <input id="passwordInput" type="password" placeholder="folder password" />
 +          </label>
-+          <button type="submit">Connect</button>
++          <button type="submit">Connect Drive</button>
 +        </form>
++        <p id="connectFeedback" class="connect-feedback">Waiting for connection details.</p>
 +
 +        <h2>Playlists</h2>
 +        <div class="playlist-actions">
 +          <button id="newPlaylistBtn" type="button">New Playlist</button>
-+          <button id="savePlaylistBtn" type="button">Save Playlist</button>
-+          <button id="makeDirectoryPlaylistBtn" type="button">Use Directory</button>
++          <button id="savePlaylistBtn" type="button">Save Queue</button>
++          <button id="makeDirectoryPlaylistBtn" type="button">Directory → Playlist</button>
 +        </div>
 +        <ul id="playlistList" class="list"></ul>
 +      </aside>
@@ -54,15 +66,15 @@ index 0000000000000000000000000000000000000000..b2923514772322bbca72c382373aa0c3
 +      <main class="main panel">
 +        <section class="explorer">
 +          <div class="section-head">
-+            <h2>Cloud Explorer</h2>
-+            <small>Select audio/video files from directories and subdirectories.</small>
++            <h2>Explorer</h2>
++            <small id="statusText">Not connected</small>
 +          </div>
 +          <div id="directoryTree" class="tree"></div>
 +        </section>
 +
 +        <section class="queue">
 +          <div class="section-head">
-+            <h2>Now Playing Queue</h2>
++            <h2>Queue</h2>
 +            <button id="clearQueueBtn" type="button">Clear Queue</button>
 +          </div>
 +          <ul id="queueList" class="list"></ul>
@@ -72,12 +84,12 @@ index 0000000000000000000000000000000000000000..b2923514772322bbca72c382373aa0c3
 +      <footer class="player panel">
 +        <div class="player-meta">
 +          <strong id="nowPlaying">Nothing playing</strong>
-+          <small id="nowSource">Connect a cloud drive and add media</small>
++          <small id="nowSource">Connect a drive and add media files</small>
 +        </div>
 +        <div class="player-controls">
-+          <button id="playBtn" type="button">Play</button>
-+          <button id="pauseBtn" type="button">Pause</button>
-+          <button id="nextBtn" type="button">Next</button>
++          <button id="playBtn" type="button">▶ Play</button>
++          <button id="pauseBtn" type="button">⏸ Pause</button>
++          <button id="nextBtn" type="button">⏭ Next</button>
 +        </div>
 +        <audio id="audioPlayer" controls></audio>
 +        <video id="videoPlayer" controls hidden></video>
