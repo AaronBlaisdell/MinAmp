@@ -1,27 +1,51 @@
 diff --git a/README.md b/README.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..f0820b43e46fed26505b2b8c810eb4539bd29e9c
+index 0000000000000000000000000000000000000000..f6b4095cda5cd77a77888143f7a54911dc1deb86
 --- /dev/null
 +++ b/README.md
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,52 @@
 +# MinAmp Cloud Player
 +
-+A Winamp-inspired media player prototype that mixes iTunes-style library browsing with cloud drive access workflows.
++A Winamp-inspired cloud media player prototype with URL-based drive connection, explorer navigation, queue playback, and playlist management.
 +
-+## Features in this prototype
++## What changed
 +
-+- Winamp-style dark desktop interface with a cloud explorer panel.
-+- Cloud connection form for Google Drive, MEGA, and Proton Drive (simulated connection workflow).
-+- Optional password field to represent protected drives/folders.
-+- Explorer tree with root and subdirectories, including media selection.
-+- Queue audio and video files individually or add an entire directory recursively.
-+- Save current queue as playlists in `localStorage`.
-+- Create a playlist directly from the selected directory.
-+- Audio/video playback controls (play, pause, next).
++- More Winamp-like visual shell (retro purple/blue frame, header controls, compact panes).
++- Connection now **requires drive URL + username** (and optional password).
++- Connect action now always gives visible feedback:
++  - If URL returns valid JSON drive tree, it loads that tree.
++  - If URL fails, the app shows an error and loads demo content so the UI remains usable.
++
++## Expected drive URL JSON format
++
++Provide a URL that returns JSON with this structure:
++
++```json
++{
++  "name": "Root",
++  "type": "directory",
++  "children": [
++    {
++      "name": "Albums",
++      "type": "directory",
++      "children": [
++        {
++          "name": "Track 1.mp3",
++          "type": "audio",
++          "url": "https://example.com/media/track1.mp3"
++        }
++      ]
++    },
++    {
++      "name": "Video 1.mp4",
++      "type": "video",
++      "url": "https://example.com/media/video1.mp4"
++    }
++  ]
++}
++```
 +
 +## Run
-+
-+Because this is a static app, you can run it with any local web server. Example:
 +
 +```bash
 +python3 -m http.server 4173
@@ -29,9 +53,6 @@ index 0000000000000000000000000000000000000000..f0820b43e46fed26505b2b8c810eb453
 +
 +Then open `http://localhost:4173`.
 +
-+## Next steps for production
++## Notes
 +
-+- Replace simulated cloud data with OAuth + API integrations for each provider.
-+- Add secure credentials handling and encrypted token storage.
-+- Add transcoding/streaming compatibility checks by file type.
-+- Add a desktop shell (Tauri/Electron) for deeper OS integration.
++This is still a prototype. Real Google Drive/MEGA/Proton integration requires provider OAuth/token APIs and secure credential handling.
